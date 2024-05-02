@@ -75,4 +75,4 @@ def replace_html_with_md(file_path):
         f.write(content)
 
 summary_file = 'SUMMARY.md'
-#replace_html_with_md(summary_file)
+replace_html_with_md(summary_file)
