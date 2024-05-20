@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from markdownify import markdownify as md
 import os
 
 def process_html_file(html_file):
@@ -24,8 +25,8 @@ def process_html_file(html_file):
             if link.has_attr('class') and link['class'] == 'external-link':
                 continue
             else:
-                if '/wiki/spaces/ISMS/pages' in link['href']:
-                        new_href = link['href'].split('/wiki/spaces/ISMS/pages/', 1)[1]
+                if '/wiki/spaces/nxcloud/pages' in link['href']:
+                        new_href = link['href'].split('/wiki/spaces/nxcloud/pages/', 1)[1]
                         split_href = new_href.split('/')
                         if len(split_href) > 1:
                             new_href = split_href[1].replace('+', '-')+ '_' + split_href[0] + '.md'
@@ -35,6 +36,15 @@ def process_html_file(html_file):
                             link['href']=new_href
                 else:
                     link['href'] = link['href'].replace('.html', '.md')
+                index_of_hash = link['href'].rfind('#')
+                if index_of_hash == -1:
+                    continue
+                else:
+                    split_hash = [link['href'][:index_of_hash], link['href'][index_of_hash+1:]]
+                    pre_hash = split_hash[0]
+                    post_hash = split_hash[1]
+                    replaced_post_hash = post_hash.replace("-(", "-").replace(")-", "-").replace("(", "-").replace(")", "-").replace("'", "").lower()
+                    link['href']= pre_hash + "#" + replaced_post_hash
             link['href'] = link['href'].replace('%2C', '%252C')
         else:
             print('link without href',link)
@@ -42,7 +52,7 @@ def process_html_file(html_file):
 
     # Convert image tags to <figure> tags
     for img in main_content_div.find_all('img'):
-        print('img', type(img))
+        #print('img', type(img))
         img.wrap(soup.new_tag('figure'))
 
     # Change file extension to .md
@@ -69,6 +79,7 @@ def replace_html_with_md(file_path):
 
     # Replace '.html' with '.md'
     content = content.replace('.html', '.md')
+    content = md(content)
 
     # Write the modified content back to the file
     with open(file_path, 'w', encoding='utf-8') as f:
