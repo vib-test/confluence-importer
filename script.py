@@ -1,6 +1,12 @@
 from bs4 import BeautifulSoup
-from markdownify import markdownify as md
+#from markdownify import markdownify as md
 import os
+
+#def transform_code(confluence_val):
+#    return confluence_val
+#    if confluence_val == 'js':
+#        return 'javascript'
+#    return confluence_val
 
 def process_html_file(html_file):
     print('Processing file', html_file)
@@ -20,7 +26,6 @@ def process_html_file(html_file):
     
     # Convert links to html pages to md
     for link in main_content_div.find_all('a'):
-        #print('link thyoe', type(link))
         if link.has_attr('href'):
             if link.has_attr('class') and link['class'] == 'external-link':
                 continue
@@ -52,8 +57,61 @@ def process_html_file(html_file):
 
     # Convert image tags to <figure> tags
     for img in main_content_div.find_all('img'):
-        #print('img', type(img))
         img.wrap(soup.new_tag('figure'))
+    
+    #attachments
+    for link in main_content_div.find_all('a'):
+        #print('link', link)
+        if link.has_attr('class'):
+            #print('class', link['class'])
+            if link['class'][0] == 'confluence-embedded-file':
+                src = link['href']
+                #print('file neing addded')
+                link.replace_with('{{% file src=\"{0}\" %}}'.format(src))
+    
+    #code blocks
+    for code in main_content_div.find_all('pre'):
+        if code.has_attr('class') and code.has_attr('data-syntaxhighlighter-params'):
+            if code['class'][0] == 'syntaxhighlighter-pre':
+                brush = code['data-syntaxhighlighter-params'].split(';')[0]
+                value = brush[brush.index(':') + 2:]
+                new_code_tag = soup.new_tag('code', **{'class':'lang-{0}'.format(value)})
+                new_code_tag.string = code.text
+                code.string.replace_with(new_code_tag)
+    
+    # Preserving Column widths approach 1. Didn't work
+    
+    #for colgroup in main_content_div.find_all('colgroup'):
+    #    colgroup.wrap(soup.new_tag('thead'))
+    #    colgroup.name='tr'
+    
+    #for col in main_content_div.find_all('col'):
+    #    print('col', col)
+    #    if col.has_attr('style'):
+    #        width_str= col['style']
+    #        width = int(float(width_str[len("width: "):-(len("px")+1)]))
+    #        col['width']=str(width)
+    #        del col['style']
+    #    col.name = 'th'
+    
+    #width_arr = []
+                
+    #Preserving column widths approach 2. Also didn't work
+
+    #for col in main_content_div.find_all('col'):
+    #    if col.has_attr('style'):
+    #        width_str= col['style']
+    #        width = int(float(width_str[len("width: "):-(len("px")+1)]))
+    #        print("width", width)
+    #        width_arr.append(width)
+    #index = 0
+    #for th in main_content_div.find_all('th'):
+    #    if index > len(width_arr) -1 :
+    #        break
+    #    th['width']= str(width_arr[index])
+    #    del th['class']
+    #    index+=1
+    
 
     # Change file extension to .md
     md_file = os.path.splitext(html_file)[0] + '.md'
@@ -79,7 +137,7 @@ def replace_html_with_md(file_path):
 
     # Replace '.html' with '.md'
     content = content.replace('.html', '.md')
-    content = md(content)
+    #content = md(content)
 
     # Write the modified content back to the file
     with open(file_path, 'w', encoding='utf-8') as f:
@@ -87,3 +145,4 @@ def replace_html_with_md(file_path):
 
 summary_file = 'SUMMARY.md'
 replace_html_with_md(summary_file)
+
