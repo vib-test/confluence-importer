@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-#from markdownify import markdownify as md
+from markdownify import markdownify as md
 import os
 
 #def transform_code(confluence_val):
@@ -137,7 +137,7 @@ def replace_html_with_md(file_path):
 
     # Replace '.html' with '.md'
     content = content.replace('.html', '.md')
-    #content = md(content)
+    content = md(content)
 
     # Write the modified content back to the file
     with open(file_path, 'w', encoding='utf-8') as f:
