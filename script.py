@@ -19,6 +19,8 @@ def process_html_file(html_file):
 
     # Remove all content outside of the div with id "main-content"
     main_content_div = soup.find(id='main-content')
+    if main_content_div is None:
+        return
 
     # Remove query parameters from image URLs
     for img in main_content_div.find_all('img'):
